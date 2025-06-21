@@ -1,0 +1,8 @@
+[submodule "libwebp"]
+  path = libwebp
+  url = git@github.com:webmproject/libwebp.git
+  branch = main
+[submodule "giflib"]
+  path = giflib
+  url = git://git.code.sf.net/p/giflib/code
+  branch = master

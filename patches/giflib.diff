@@ -1,0 +1,61 @@
+diff --git a/.gitignore b/.gitignore
+index f3f4abe..d86b687 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -4,6 +4,8 @@
+ *.la
+ *.so
+ *.so.*
++*.wasm
++*.dylib
+ gif2raw
+ gif2rgb
+ gifasm
+diff --git a/Makefile b/Makefile
+index 8497442..927b6f2 100644
+--- a/Makefile
++++ b/Makefile
+@@ -11,7 +11,7 @@
+ CC ?= gcc
+ OFLAGS = -O0 -g
+ OFLAGS  = -O2
+-CFLAGS  += -std=gnu99 -fPIC -Wall -Wno-format-truncation $(OFLAGS)
++CFLAGS  += -std=gnu99 -fPIC -Wall -s USE_ZLIB=1 -Wno-format-truncation $(OFLAGS)
+ 
+ SHELL = /bin/sh
+ TAR = tar
+@@ -36,7 +36,7 @@ SOURCES = dgif_lib.c egif_lib.c gifalloc.c gif_err.c gif_font.c \
+ HEADERS = gif_hash.h  gif_lib.h  gif_lib_private.h
+ OBJECTS = $(SOURCES:.c=.o)
+ 
+-USOURCES = qprintf.c quantize.c getarg.c 
++USOURCES = qprintf.c quantize.c getarg.c
+ UHEADERS = getarg.h
+ UOBJECTS = $(USOURCES:.c=.o)
+ 
+@@ -106,7 +106,7 @@ $(LIBGIFSO): $(OBJECTS) $(HEADERS)
+ ifeq ($(UNAME), Darwin)
+ 	$(CC) $(CFLAGS) -dynamiclib -current_version $(LIBVER) $(OBJECTS) -o $(LIBGIFSO)
+ else
+-	$(CC) $(CFLAGS) $(CPPFLAGS) -shared $(LDFLAGS) -Wl,-soname -Wl,$(LIBGIFSOMAJOR) -o $(LIBGIFSO) $(OBJECTS)
++	$(CC) $(CFLAGS) -s SIDE_MODULE=1 $(CPPFLAGS) -o $(LIBGIFSO) $(OBJECTS)
+ endif
+ 
+ libgif.a: $(OBJECTS) $(HEADERS)
+@@ -116,14 +116,14 @@ $(LIBUTILSO): $(UOBJECTS) $(UHEADERS)
+ ifeq ($(UNAME), Darwin)
+ 	$(CC) $(CFLAGS) -dynamiclib -current_version $(LIBVER) $(OBJECTS) -o $(LIBUTILSO)
+ else
+-	$(CC) $(CFLAGS) $(CPPLAGS) -shared $(LDFLAGS) -Wl,-soname -Wl,$(LIBUTILMAJOR) -o $(LIBUTILSO) $(UOBJECTS)
++	$(CC) $(CFLAGS) -s SIDE_MODULE=1 $(CPPLAGS) -o $(LIBUTILSO) $(UOBJECTS)
+ endif
+ 
+ libutil.a: $(UOBJECTS) $(UHEADERS)
+ 	$(AR) rcs libutil.a $(UOBJECTS)
+ 
+ clean:
+-	rm -f $(UTILS) $(TARGET) libgetarg.a libgif.a $(LIBGIFSO) libutil.a $(LIBUTILSO) *.o
++	rm -f $(UTILS) $(TARGET) libgetarg.a libgif.a $(LIBGIFSO) libutil.a $(LIBUTILSO) *.o *.wasm
+ 	rm -f $(LIBGIFSOVER)
+ 	rm -f $(LIBGIFSOMAJOR)
+ 	$(MAKE) --quiet -C doc clean
